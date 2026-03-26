@@ -5,12 +5,21 @@
 
 #define NB_MESURES 30
 
-int main (int argc, char **argv)
-{
+int main (int argc, char **argv) {
+
+    // store measures
     struct timeval tv[NB_MESURES];
     int i;
 
-    /* ... */
+    // take measures
+    for (i = 0 ; i < NB_MESURES ; ++i) {
+        gettimeofday(&tv[i], NULL);
+    }
+
+    // print measures
+    for (i = 0 ; i < NB_MESURES ; ++i) {
+        printf("%2d : %ld.%06ld\n", i, tv[i].tv_sec, tv[i].tv_usec);
+    }
 
     return EXIT_SUCCESS;
 }
