@@ -27,9 +27,9 @@
 #include <evl/proxy.h>
 #include <evl/timer.h>
 
-#define RT_PERIOD_TIME_MS 100000000   /* 100 ms */
-#define START_DELAY_NS     50000000   /*  50 ms */
-#define NB_MEASURES       100000000   /* 100'000'000 */
+#define RT_PERIOD_NS      100000000   /*     100 ms */
+#define START_DELAY_NS     50000000   /*      50 ms */
+#define NB_MEASURES             100   /*     100 nb */
 
 typedef struct thread_arg {
     int proxy_fd;
@@ -95,19 +95,11 @@ void *thread_sensors(void *arg)
     evl_read_clock(EVL_CLOCK_MONOTONIC, &now);
 
     // Put start time from now with a delay
-    value.it_value = now;
-    value.it_value.tv_sec += START_DELAY_NS / 1000000000;
-    value.it_value.tv_nsec += START_DELAY_NS % 1000000000;
+    timespec_add_ns(&value.it_value, &now, START_DELAY_NS);
 
-    // Check for possible overflow in nsec
-    if (value.it_value.tv_nsec >= 1000000000) {
-        value.it_value.tv_sec++;
-        value.it_value.tv_nsec -= 1000000000;
-    }
-
-    // Fix intervals every PERIOD_NS
+    // Fix intervals every RT_PERIOD_NS
     value.it_interval.tv_sec = 0;
-    value.it_interval.tv_nsec = RT_PERIOD_TIME_MS;
+    value.it_interval.tv_nsec = RT_PERIOD_NS;
 
     // Set timer
     if (evl_set_timer(tmfd, &value, NULL)) {
@@ -123,11 +115,21 @@ void *thread_sensors(void *arg)
             break;
         }
 
-        s1 = 2.0 * sin(t);
-        s2 = 5.0 * sin(t + 0.8);
+        // Possible to use the time as a base
+        // but graph on doc looks too clean for that
+        /*
+        evl_read_clock(EVL_CLOCK_MONOTONIC, &now);
+        double time_s = now.tv_sec + now.tv_nsec / 1000000000.0;
+
+        s1 = 2.0 * sin(2.0 * M_PI * 0.5 * time_s);
+        s2 = 5.0 * sin(2.0 * M_PI * 0.5 * time_s + 0.8);
+        */
+
+        s1 = 1.0 * sin(t);
+        s2 = 2.0 * sin(t + 0.8);
 
         ret = snprintf(line, sizeof(line), "%f %f\n", s1, s2);
-        if (ret < 0 || ret >= sizeof(line)) {
+        if (ret < 0 || (unsigned) ret >= sizeof(line)) {
             evl_printf("snprintf() failed\n");
             break;
         }
