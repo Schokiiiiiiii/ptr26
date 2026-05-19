@@ -161,8 +161,8 @@ int main(int argc, char *argv[])
     sample_t sample;
     struct timespec current_time;
 
-    long previous_current_ns = 0;
-    long previous_sample_ns = 0;
+    int64_t previous_current_ns = 0;
+    int64_t previous_sample_ns = 0;
 
     /* Test parameters */
     if (argc != 2) {
@@ -216,20 +216,20 @@ int main(int argc, char *argv[])
             break;
         }
 
-        long current_ns =
-            current_time.tv_sec * 1000000000L +
+        int64_t current_ns =
+            (int64_t)current_time.tv_sec * 1000000000LL +
             current_time.tv_nsec;
 
-        long sample_ns =
-            sample.time.tv_sec * 1000000000L +
+        int64_t sample_ns =
+            (int64_t)sample.time.tv_sec * 1000000000LL +
             sample.time.tv_nsec;
 
-        printf("Current: %ld ns | Delta current: %ld ns | "
-               "Xbuf: %ld ns | Delta xbuf: %ld ns\n",
-               current_ns,
-               previous_current_ns ? current_ns - previous_current_ns : 0,
-               sample_ns,
-               previous_sample_ns ? sample_ns - previous_sample_ns : 0);
+        printf("Current: %" PRId64 " ns | Delta current: %" PRId64 " ns | "
+            "Xbuf: %" PRId64 " ns | Delta xbuf: %" PRId64 " ns\n",
+            current_ns,
+            previous_current_ns ? current_ns - previous_current_ns : 0,
+            sample_ns,
+            previous_sample_ns ? sample_ns - previous_sample_ns : 0);
 
         previous_current_ns = current_ns;
         previous_sample_ns = sample_ns;
